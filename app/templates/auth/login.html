@@ -1,0 +1,219 @@
+{% extends 'base_auth.html' %}
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+
+    <div class="auth-left">
+        <div class="auth-left-inner">
+
+            <div class="auth-brand">
+                <svg width="44" height="44" viewBox="0 0 112 112" fill="none">
+                    <defs>
+                        <linearGradient id="kg" x1="0" y1="0" x2="112" y2="112" gradientUnits="userSpaceOnUse">
+                            <stop offset="0%" stop-color="#34D399"/>
+                            <stop offset="100%" stop-color="#047857"/>
+                        </linearGradient>
+                    </defs>
+                    <rect width="112" height="112" rx="26" fill="url(#kg)"/>
+                    <rect x="3" y="3" width="106" height="106" rx="24" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="1.5"/>
+                    <rect x="25" y="18" width="14" height="76" rx="3.5" fill="white"/>
+                    <polygon points="39,56 78,18 92,18 92,30 52,63" fill="white"/>
+                    <polygon points="39,60 92,94 92,106 75,106 39,68" fill="white"/>
+                    <circle cx="80" cy="56" r="9" fill="#0F172A" opacity="0.35"/>
+                    <circle cx="80" cy="56" r="5.5" fill="white"/>
+                    <circle cx="80" cy="56" r="2.5" fill="#10B981"/>
+                </svg>
+                <span class="auth-brand-name">Kasir<span>Ku</span></span>
+            </div>
+
+            <div class="auth-headline">
+                <h1>Kelola bisnis<br>lebih <span class="auth-highlight">cerdas</span>.</h1>
+                <p>Platform kasir modern yang membantu kamu mencatat transaksi, mengelola produk, dan memantau laporan harian dengan mudah.</p>
+            </div>
+
+            <div class="auth-stats">
+                <div class="auth-stat">
+                    <span class="auth-stat-number">100%</span>
+                    <span class="auth-stat-label">Data aman</span>
+                </div>
+                <div class="auth-stat-divider"></div>
+                <div class="auth-stat">
+                    <span class="auth-stat-number">Real-time</span>
+                    <span class="auth-stat-label">Laporan harian</span>
+                </div>
+                <div class="auth-stat-divider"></div>
+                <div class="auth-stat">
+                    <span class="auth-stat-number">Mudah</span>
+                    <span class="auth-stat-label">Digunakan</span>
+                </div>
+            </div>
+
+            <div class="auth-features-list">
+                <div class="auth-feature-row">
+                    <div class="auth-feature-dot"></div>
+                    <span>Manajemen produk dan kategori lengkap</span>
+                </div>
+                <div class="auth-feature-row">
+                    <div class="auth-feature-dot"></div>
+                    <span>Transaksi cepat dengan update stok otomatis</span>
+                </div>
+                <div class="auth-feature-row">
+                    <div class="auth-feature-dot"></div>
+                    <span>Laporan pendapatan harian yang akurat</span>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="auth-left-decoration">
+            <div class="auth-deco-card">
+                <div class="auth-deco-icon"><i class="bi bi-graph-up-arrow"></i></div>
+                <div>
+                    <p class="auth-deco-title">Pendapatan Hari Ini</p>
+                    <p class="auth-deco-value">Rp 2.450.000</p>
+                </div>
+            </div>
+            <div class="auth-deco-card">
+                <div class="auth-deco-icon auth-deco-icon-green"><i class="bi bi-bag-check"></i></div>
+                <div>
+                    <p class="auth-deco-title">Total Transaksi</p>
+                    <p class="auth-deco-value">24 transaksi</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="auth-right">
+        <div class="auth-form-container">
+
+            <div class="auth-form-header">
+                <h2>Selamat datang</h2>
+                <p>Masuk ke akun KasirKu kamu untuk melanjutkan.</p>
+            </div>
+
+            <form method="POST" action="{{ url_for('auth.login') }}" novalidate>
+                {{ form.hidden_tag() }}
+
+                <div class="auth-field">
+                    <label>Username</label>
+                    <div class="auth-input-wrap">
+                        <i class="bi bi-person auth-input-icon"></i>
+                        {{ form.username(class="auth-input" + (" is-invalid" if form.username.errors else ""), placeholder="Masukkan username kamu") }}
+                    </div>
+                    {% if form.username.errors %}
+                        <span class="auth-error">{{ form.username.errors[0] }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="auth-field">
+                    <label>Password</label>
+                    <div class="auth-input-wrap">
+                        <i class="bi bi-lock auth-input-icon"></i>
+                        {{ form.password(class="auth-input" + (" is-invalid" if form.password.errors else ""), placeholder="Masukkan password kamu", id="passwordField") }}
+                        <button type="button" class="auth-eye-btn" onclick="togglePassword()">
+                            <i class="bi bi-eye" id="eyeIcon"></i>
+                        </button>
+                    </div>
+                    {% if form.password.errors %}
+                        <span class="auth-error">{{ form.password.errors[0] }}</span>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="auth-submit-btn">
+                    Masuk ke KasirKu
+                    <i class="bi bi-arrow-right ms-2"></i>
+                </button>
+
+                <p class="auth-switch">
+                    Belum punya akun?
+                    <a href="{{ url_for('auth.register') }}">Daftar sekarang</a>
+                </p>
+            </form>
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function togglePassword() {
+    const field = document.getElementById('passwordField');
+    const icon = document.getElementById('eyeIcon');
+    if (field.type === 'password') {
+        field.type = 'text';
+        icon.classList.replace('bi-eye', 'bi-eye-slash');
+    } else {
+        field.type = 'password';
+        icon.classList.replace('bi-eye-slash', 'bi-eye');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const container = document.querySelector('.auth-container');
+    const authLeft = document.querySelector('.auth-left');
+    const authRight = document.querySelector('.auth-right');
+    const inputs = document.querySelectorAll('.auth-input');
+    let userInteracted = false;
+
+    function clearAll() {
+        container.classList.remove('focus-right', 'focus-left');
+    }
+
+    function setFocusRight() {
+        container.classList.add('focus-right');
+        container.classList.remove('focus-left');
+    }
+
+    function setFocusLeft() {
+        container.classList.add('focus-left');
+        container.classList.remove('focus-right');
+    }
+
+    // Input focus
+    inputs.forEach(input => {
+        input.addEventListener('focus', () => {
+            userInteracted = true;
+            setFocusRight();
+        });
+        input.addEventListener('blur', () => {
+            setTimeout(() => {
+                if (!document.querySelector('.auth-input:focus')) {
+                    clearAll();
+                }
+            }, 150);
+        });
+    });
+
+    // Hover panel kiri
+    authLeft.addEventListener('mouseenter', () => {
+        userInteracted = true;
+        if (!document.querySelector('.auth-input:focus')) {
+            setFocusLeft();
+        }
+    });
+
+    authLeft.addEventListener('mouseleave', () => {
+        if (!document.querySelector('.auth-input:focus')) {
+            clearAll();
+        }
+    });
+
+    // Hover panel kanan
+    authRight.addEventListener('mouseenter', () => {
+        userInteracted = true;
+        if (!document.querySelector('.auth-input:focus')) {
+            setFocusRight();
+        }
+    });
+
+    authRight.addEventListener('mouseleave', () => {
+        if (!document.querySelector('.auth-input:focus')) {
+            clearAll();
+        }
+    });
+});
+</script>
+{% endblock %}

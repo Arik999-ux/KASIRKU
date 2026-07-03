@@ -1,0 +1,287 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h4 class="page-title">Dashboard</h4>
+        <p class="page-subtitle">
+            Selamat datang kembali, <strong style="color:#10B981">{{ current_user.username }}</strong>
+            Berikut ringkasan bisnis kamu hari ini
+        </p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('transaction.index') }}" class="btn btn-primary-custom">
+            <i class="bi bi-cart-plus me-1"></i> Transaksi Baru
+        </a>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-6 col-xl-3">
+        <div class="stat-card stat-green">
+            <div class="stat-icon"><i class="bi bi-cash-stack"></i></div>
+            <div class="stat-info">
+                <p class="stat-label">Pendapatan Hari Ini</p>
+                <h3 class="stat-value">Rp {{ "{:,.0f}".format(revenue_today) }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="stat-card stat-blue">
+            <div class="stat-icon"><i class="bi bi-cart-check"></i></div>
+            <div class="stat-info">
+                <p class="stat-label">Total Transaksi</p>
+                <h3 class="stat-value">{{ total_transactions }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="stat-card stat-orange">
+            <div class="stat-icon"><i class="bi bi-box-seam"></i></div>
+            <div class="stat-info">
+                <p class="stat-label">Total Produk</p>
+                <h3 class="stat-value">{{ total_products }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="stat-card stat-purple">
+            <div class="stat-icon"><i class="bi bi-tags"></i></div>
+            <div class="stat-info">
+                <p class="stat-label">Total Kategori</p>
+                <h3 class="stat-value">{{ total_categories }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+
+    <div class="col-12 col-lg-8">
+        <div class="content-card">
+            <div class="content-card-header">
+                <h6 class="content-card-title">
+                    <i class="bi bi-graph-up-arrow me-2" style="color:#10B981"></i>
+                    Pendapatan 7 Hari Terakhir
+                </h6>
+                <a href="{{ url_for('transaction.report') }}" class="btn btn-sm btn-outline-primary">
+                    Lihat Laporan
+                </a>
+            </div>
+            <div class="p-4">
+                <canvas id="revenueChart" height="120"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+        <div class="content-card h-100">
+            <div class="content-card-header">
+                <h6 class="content-card-title">
+                    <i class="bi bi-trophy me-2" style="color:#F59E0B"></i>
+                    Top Produk Terlaris
+                </h6>
+            </div>
+            <div class="p-3">
+                {% if top_products %}
+                    {% for p in top_products %}
+                    <div class="top-product-row">
+                        <div class="top-product-rank">{{ loop.index }}</div>
+                        <div class="top-product-info">
+                            <p class="top-product-name">{{ p.name }}</p>
+                            <p class="top-product-stat">{{ p.total_qty }} terjual</p>
+                        </div>
+                        <div class="top-product-revenue">
+                            Rp {{ "{:,.0f}".format(p.total_revenue) }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-trophy d-block fs-2 mb-2 text-muted opacity-50"></i>
+                        <p class="text-muted small">Belum ada data transaksi</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="row g-4">
+
+    <div class="col-12 col-lg-8">
+        <div class="content-card">
+            <div class="content-card-header">
+                <h6 class="content-card-title">
+                    <i class="bi bi-activity me-2" style="color:#10B981"></i>
+                    Aktivitas Transaksi Terbaru
+                </h6>
+                <a href="{{ url_for('transaction.history') }}" class="btn btn-sm btn-outline-primary">
+                    Lihat Semua
+                </a>
+            </div>
+            <div class="activity-feed">
+                {% if recent_transactions %}
+                    {% for t in recent_transactions %}
+                    <div class="activity-item">
+                        <div class="activity-dot"></div>
+                        <div class="activity-content">
+                            <div class="activity-main">
+                                <div>
+                                    <p class="activity-title">{{ t.product.name }}</p>
+                                    <p class="activity-meta">
+                                        <i class="bi bi-person me-1"></i>{{ t.cashier.username }}
+                                        <span class="mx-2">·</span>
+                                        <i class="bi bi-box-seam me-1"></i>{{ t.quantity }} item
+                                    </p>
+                                </div>
+                                <div class="text-end">
+                                    <p class="activity-amount">Rp {{ "{:,.0f}".format(t.total_price) }}</p>
+                                    <p class="activity-time">{{ t.created_at.strftime('%d/%m %H:%M') }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-inbox d-block fs-2 mb-2 text-muted opacity-50"></i>
+                        <p class="text-muted small">Belum ada aktivitas transaksi</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+        <div class="content-card">
+            <div class="content-card-header">
+                <h6 class="content-card-title">
+                    <i class="bi bi-lightning me-2" style="color:#F59E0B"></i>
+                    Aksi Cepat
+                </h6>
+            </div>
+            <div class="p-3 d-flex flex-column gap-2">
+                <a href="{{ url_for('transaction.index') }}" class="quick-action-btn">
+                    <i class="bi bi-cart-plus"></i>
+                    <span>Transaksi Baru</span>
+                    <i class="bi bi-chevron-right ms-auto"></i>
+                </a>
+                <a href="{{ url_for('product.create') }}" class="quick-action-btn">
+                    <i class="bi bi-plus-square"></i>
+                    <span>Tambah Produk</span>
+                    <i class="bi bi-chevron-right ms-auto"></i>
+                </a>
+                <a href="{{ url_for('category.create') }}" class="quick-action-btn">
+                    <i class="bi bi-folder-plus"></i>
+                    <span>Tambah Kategori</span>
+                    <i class="bi bi-chevron-right ms-auto"></i>
+                </a>
+                <a href="{{ url_for('transaction.report') }}" class="quick-action-btn">
+                    <i class="bi bi-bar-chart-line"></i>
+                    <span>Laporan Harian</span>
+                    <i class="bi bi-chevron-right ms-auto"></i>
+                </a>
+                <a href="{{ url_for('product.index') }}" class="quick-action-btn">
+                    <i class="bi bi-box-seam"></i>
+                    <span>Kelola Produk</span>
+                    <i class="bi bi-chevron-right ms-auto"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () 
+{
+    const labels = JSON.parse('{{ chart_labels | tojson }}')
+    const data = JSON.parse('{{ chart_data | tojson }}')
+
+    const ctx = document.getElementById('revenueChart').getContext('2d')
+
+    const gradient = ctx.createLinearGradient(0, 0, 0, 300)
+    gradient.addColorStop(0, 'rgba(16, 185, 129, 0.25)')
+    gradient.addColorStop(1, 'rgba(16, 185, 129, 0.0)')
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Pendapatan',
+                data: data,
+                borderColor: '#10B981',
+                borderWidth: 2.5,
+                backgroundColor: gradient,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#10B981',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 5,
+                pointHoverRadius: 7
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#0F172A',
+                    titleColor: '#94A3B8',
+                    bodyColor: '#ffffff',
+                    borderColor: '#1E293B',
+                    borderWidth: 1,
+                    padding: 12,
+                    cornerRadius: 10,
+                    callbacks: {
+                        label: function(ctx) {
+                            return ' Rp ' + ctx.raw.toLocaleString('id-ID')
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { color: 'rgba(255,255,255,0.04)' },
+                    ticks: {
+                        color: '#475569',
+                        font: { family: 'Inter', size: 12 }
+                    }
+                },
+                y: {
+                    grid: { color: 'rgba(255,255,255,0.04)' },
+                    ticks: {
+                        color: '#475569',
+                        font: { family: 'Inter', size: 12 },
+                        callback: function(val) {
+                            if (val >= 1000000) return 'Rp ' + (val/1000000).toFixed(1) + 'jt'
+                            if (val >= 1000) return 'Rp ' + (val/1000).toFixed(0) + 'rb'
+                            return 'Rp ' + val
+                        }
+                    }
+                }
+            },
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            animation: {
+                duration: 1000,
+                easing: 'easeInOutQuart'
+            }
+        }
+    })
+
+})
+</script>
+{% endblock %}

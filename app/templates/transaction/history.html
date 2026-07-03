@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}Riwayat Transaksi{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h4 class="page-title">Riwayat Transaksi</h4>
+        <p class="page-subtitle">Semua transaksi yang telah diproses.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('transaction.report') }}" class="btn btn-outline-primary">
+            <i class="bi bi-bar-chart-line me-1"></i> Laporan
+        </a>
+        <a href="{{ url_for('transaction.index') }}" class="btn btn-primary-custom">
+            <i class="bi bi-plus-lg me-1"></i> Transaksi Baru
+        </a>
+    </div>
+</div>
+
+<div class="content-card">
+    <div class="table-responsive">
+        <table class="table table-hover custom-table">
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>Produk</th>
+                    <th>Kasir</th>
+                    <th>Qty</th>
+                    <th>Total</th>
+                    <th>Waktu</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if transactions %}
+                    {% for t in transactions %}
+                    <tr>
+                        <td class="text-muted">{{ loop.index }}</td>
+                        <td class="fw-500">{{ t.product.name }}</td>
+                        <td>{{ t.cashier.username }}</td>
+                        <td><span class="badge bg-light text-dark">{{ t.quantity }}</span></td>
+                        <td class="fw-600 text-success">Rp {{ "{:,.0f}".format(t.total_price) }}</td>
+                        <td class="text-muted small">{{ t.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td>
+                            <form method="POST" action="{{ url_for('transaction.delete', id=t.id) }}"
+                                  onsubmit="return confirmDelete('transaksi ini')">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox fs-4 d-block mb-2"></i>
+                            Belum ada riwayat transaksi
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

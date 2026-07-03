@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block title %}Kategori{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h4 class="page-title">Manajemen Kategori</h4>
+        <p class="page-subtitle">Kelola semua kategori produk.</p>
+    </div>
+    <a href="{{ url_for('category.create') }}" class="btn btn-primary-custom">
+        <i class="bi bi-plus-lg me-1"></i> Tambah Kategori
+    </a>
+</div>
+
+<div class="content-card">
+    <div class="table-responsive">
+        <table class="table table-hover custom-table">
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>Nama Kategori</th>
+                    <th>Deskripsi</th>
+                    <th>Jumlah Produk</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if categories %}
+                    {% for category in categories %}
+                    <tr>
+                        <td class="text-muted">{{ loop.index }}</td>
+                        <td class="fw-500">{{ category.name }}</td>
+                        <td class="text-muted">{{ category.description or '-' }}</td>
+                        <td><span class="badge bg-primary">{{ category.products|length }}</span></td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <a href="{{ url_for('category.edit', id=category.id) }}"
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form method="POST" action="{{ url_for('category.delete', id=category.id) }}"
+                                      onsubmit="return confirmDelete('kategori {{ category.name }}')">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">
+                            <i class="bi bi-tags fs-4 d-block mb-2"></i>
+                            Belum ada kategori. <a href="{{ url_for('category.create') }}">Tambah sekarang</a>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

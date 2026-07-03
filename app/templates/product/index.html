@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}Produk{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h4 class="page-title">Manajemen Produk</h4>
+        <p class="page-subtitle">Kelola semua produk yang tersedia di toko.</p>
+    </div>
+    <a href="{{ url_for('product.create') }}" class="btn btn-primary-custom">
+        <i class="bi bi-plus-lg me-1"></i> Tambah Produk
+    </a>
+</div>
+
+{% if products %}
+<div class="product-grid">
+    {% for product in products %}
+    <div class="product-card">
+
+        <!-- Foto Produk -->
+        <div class="product-img-wrap">
+            {% if product.image_filename %}
+                <img src="{{ url_for('static', filename='uploads/' + product.image_filename) }}"
+                     alt="{{ product.name }}" class="product-img">
+            {% else %}
+                <div class="product-img-placeholder">
+                    <i class="bi bi-image"></i>
+                </div>
+            {% endif %}
+
+            <!-- Badge Stok -->
+            <div class="product-stock-badge {% if product.stock <= 5 %}stock-danger{% elif product.stock <= 20 %}stock-warning{% else %}stock-good{% endif %}">
+                <i class="bi bi-box-seam me-1"></i>{{ product.stock }}
+            </div>
+        </div>
+
+        <!-- Info Produk -->
+        <div class="product-info">
+            <span class="product-category">{{ product.category.name }}</span>
+            <h6 class="product-name">{{ product.name }}</h6>
+            <p class="product-price">Rp {{ "{:,.0f}".format(product.price) }}</p>
+        </div>
+
+        <!-- Aksi -->
+        <div class="product-actions">
+            <a href="{{ url_for('product.edit', id=product.id) }}" class="product-btn-edit">
+                <i class="bi bi-pencil me-1"></i> Edit
+            </a>
+            <form method="POST" action="{{ url_for('product.delete', id=product.id) }}"
+                  onsubmit="return confirmDelete('produk {{ product.name }}')" style="flex:1;">
+                <button type="submit" class="product-btn-delete">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </form>
+        </div>
+
+    </div>
+    {% endfor %}
+</div>
+
+{% else %}
+<div class="content-card">
+    <div class="text-center py-5">
+        <i class="bi bi-box-seam" style="font-size:3rem; color: rgba(255,255,255,0.15); display:block; margin-bottom:1rem;"></i>
+        <p style="color: rgba(255,255,255,0.4); margin-bottom:1.25rem;">Belum ada produk yang ditambahkan.</p>
+        <a href="{{ url_for('product.create') }}" class="btn btn-primary-custom">
+            <i class="bi bi-plus-lg me-1"></i> Tambah Produk Pertama
+        </a>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

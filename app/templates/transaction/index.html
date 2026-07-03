@@ -1,0 +1,307 @@
+{% extends 'base.html' %}
+{% block title %}Transaksi Baru{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h4 class="page-title">Transaksi Baru</h4>
+        <p class="page-subtitle">Proses penjualan produk ke pelanggan.</p>
+    </div>
+    <a href="{{ url_for('transaction.history') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-clock-history me-1"></i> Riwayat
+    </a>
+</div>
+
+<div class="row g-4">
+
+    <!-- FORM TRANSAKSI -->
+    <div class="col-12 col-lg-7">
+        <div class="content-card">
+            <div class="content-card-header">
+                <h6 class="content-card-title">
+                    <i class="bi bi-cart-plus me-2" style="color:#10B981;"></i>Form Transaksi
+                </h6>
+            </div>
+            <div class="p-4">
+                <form method="POST" action="{{ url_for('transaction.index') }}" novalidate id="transactionForm">
+                    {{ form.hidden_tag() }}
+
+                    <!-- Hidden select untuk submit -->
+                    <select name="product_id" id="productIdHidden" style="display:none;">
+                        {% for p in products %}
+                        <option value="{{ p.id }}">{{ p.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <input type="hidden" name="quantity" id="quantityHidden" value="1">
+
+                    <!-- Product Picker Label -->
+                    <label class="form-label mb-3">Pilih Produk</label>
+
+                    <!-- Product Grid Picker -->
+                    <div class="trx-picker-grid" id="productPickerGrid">
+                        {% for p in products %}
+                        <div class="trx-picker-card" data-id="{{ p.id }}"
+                             data-name="{{ p.name }}"
+                             data-price="{{ p.price }}"
+                             data-stock="{{ p.stock }}"
+                             data-image="{% if p.image_filename %}{{ url_for('static', filename='uploads/' + p.image_filename) }}{% else %}{% endif %}"
+                             onclick="selectProduct(this)">
+                            <div class="trx-picker-img">
+                                {% if p.image_filename %}
+                                    <img src="{{ url_for('static', filename='uploads/' + p.image_filename) }}" alt="{{ p.name }}">
+                                {% else %}
+                                    <div class="trx-picker-no-img">
+                                        <i class="bi bi-box-seam"></i>
+                                    </div>
+                                {% endif %}
+                                <div class="trx-picker-check">
+                                    <i class="bi bi-check-lg"></i>
+                                </div>
+                            </div>
+                            <div class="trx-picker-info">
+                                <p class="trx-picker-name">{{ p.name }}</p>
+                                <p class="trx-picker-price">Rp {{ "{:,.0f}".format(p.price) }}</p>
+                                <span class="trx-picker-stock {% if p.stock <= 5 %}low{% elif p.stock <= 20 %}mid{% else %}high{% endif %}">
+                                    <i class="bi bi-box-seam me-1"></i>{{ p.stock }} stok
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    {% if not products %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-box-seam d-block fs-2 mb-2 opacity-50"></i>
+                        Tidak ada produk dengan stok tersedia.
+                    </div>
+                    {% endif %}
+
+                    <!-- Jumlah -->
+                    <div class="mt-4 mb-4" id="qtySection" style="display:none;">
+                        <label class="form-label">Jumlah Pembelian</label>
+                        <div class="trx-qty-wrap">
+                            <button type="button" class="trx-qty-btn" onclick="changeQty(-1)">
+                                <i class="bi bi-dash-lg"></i>
+                            </button>
+                            <input type="number" class="trx-qty-input" id="quantityDisplay"
+                                   value="1" min="1" oninput="updateTotal()">
+                            <button type="button" class="trx-qty-btn" onclick="changeQty(1)">
+                                <i class="bi bi-plus-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Estimasi Total -->
+                    <div class="trx-total-box" id="totalBox" style="display:none;">
+                        <div>
+                            <p class="trx-total-label">Estimasi Total</p>
+                            <p class="trx-total-sub" id="totalDetail">0 item x Rp 0</p>
+                        </div>
+                        <span class="trx-total-value" id="totalPreview">Rp 0</span>
+                    </div>
+
+                    <!-- Tombol Konfirmasi -->
+                    <button type="button" class="btn btn-primary-custom w-100 mt-4"
+                            onclick="showReceipt()" id="confirmBtn"
+                            style="display:none;">
+                        <i class="bi bi-receipt me-2"></i>Lihat Struk dan Konfirmasi
+                    </button>
+
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANDUAN -->
+    <div class="col-12 col-lg-5">
+        <div class="content-card">
+            <div class="content-card-header">
+                <h6 class="content-card-title">
+                    <i class="bi bi-info-circle me-2"></i>Panduan Transaksi
+                </h6>
+            </div>
+            <div class="p-4">
+                <div class="trx-steps">
+                    <div class="trx-step">
+                        <div class="trx-step-num">1</div>
+                        <div class="trx-step-text">
+                            <p class="trx-step-title">Pilih Produk</p>
+                            <p class="trx-step-desc">Klik card produk yang ingin dijual</p>
+                        </div>
+                    </div>
+                    <div class="trx-step">
+                        <div class="trx-step-num">2</div>
+                        <div class="trx-step-text">
+                            <p class="trx-step-title">Atur Jumlah</p>
+                            <p class="trx-step-desc">Gunakan tombol + dan - untuk mengatur jumlah</p>
+                        </div>
+                    </div>
+                    <div class="trx-step">
+                        <div class="trx-step-num">3</div>
+                        <div class="trx-step-text">
+                            <p class="trx-step-title">Lihat Struk</p>
+                            <p class="trx-step-desc">Cek ringkasan struk sebelum konfirmasi</p>
+                        </div>
+                    </div>
+                    <div class="trx-step">
+                        <div class="trx-step-num">4</div>
+                        <div class="trx-step-text">
+                            <p class="trx-step-title">Konfirmasi</p>
+                            <p class="trx-step-desc">Klik proses untuk selesaikan transaksi</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- MODAL STRUK -->
+<div class="trx-modal-overlay" id="receiptModal" onclick="closeReceipt(event)">
+    <div class="trx-modal">
+        <div class="trx-receipt-header">
+            <div class="trx-receipt-logo">
+                <svg width="32" height="32" viewBox="0 0 112 112" fill="none">
+                    <defs>
+                        <linearGradient id="rg" x1="0" y1="0" x2="112" y2="112" gradientUnits="userSpaceOnUse">
+                            <stop offset="0%" stop-color="#34D399"/>
+                            <stop offset="100%" stop-color="#047857"/>
+                        </linearGradient>
+                    </defs>
+                    <rect width="112" height="112" rx="26" fill="url(#rg)"/>
+                    <rect x="25" y="18" width="14" height="76" rx="3.5" fill="white"/>
+                    <polygon points="39,56 78,18 92,18 92,30 52,63" fill="white"/>
+                    <polygon points="39,60 92,94 92,106 75,106 39,68" fill="white"/>
+                    <circle cx="80" cy="56" r="9" fill="#0F172A" opacity="0.35"/>
+                    <circle cx="80" cy="56" r="5.5" fill="white"/>
+                    <circle cx="80" cy="56" r="2.5" fill="#10B981"/>
+                </svg>
+            </div>
+            <h5 class="trx-receipt-title">KasirKu</h5>
+            <p class="trx-receipt-subtitle">Ringkasan Transaksi</p>
+            <p class="trx-receipt-date" id="receiptDate"></p>
+        </div>
+
+        <div class="trx-receipt-divider"></div>
+
+        <div class="trx-receipt-body">
+            <div class="trx-receipt-row">
+                <span>Produk</span>
+                <span id="receiptProduct" class="fw-600"></span>
+            </div>
+            <div class="trx-receipt-row">
+                <span>Harga Satuan</span>
+                <span id="receiptPrice"></span>
+            </div>
+            <div class="trx-receipt-row">
+                <span>Jumlah</span>
+                <span id="receiptQty"></span>
+            </div>
+        </div>
+
+        <div class="trx-receipt-divider dashed"></div>
+
+        <div class="trx-receipt-total">
+            <span>Total Pembayaran</span>
+            <span id="receiptTotal" class="trx-receipt-total-value"></span>
+        </div>
+
+        <div class="trx-receipt-divider"></div>
+
+        <div class="trx-receipt-actions">
+            <button type="button" class="trx-btn-cancel" onclick="closeModal()">
+                <i class="bi bi-x-lg me-2"></i>Batal
+            </button>
+            <button type="button" class="trx-btn-process" onclick="processTransaction()">
+                <i class="bi bi-check-lg me-2"></i>Proses Transaksi
+            </button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+let selectedProduct = null;
+
+function selectProduct(card) {
+    document.querySelectorAll('.trx-picker-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+
+    selectedProduct = {
+        id: card.dataset.id,
+        name: card.dataset.name,
+        price: parseInt(card.dataset.price),
+        stock: parseInt(card.dataset.stock)
+    };
+
+    document.getElementById('productIdHidden').value = selectedProduct.id;
+    document.getElementById('quantityDisplay').value = 1;
+    document.getElementById('quantityDisplay').max = selectedProduct.stock;
+
+    document.getElementById('qtySection').style.display = 'block';
+    document.getElementById('totalBox').style.display = 'flex';
+    document.getElementById('confirmBtn').style.display = 'block';
+
+    updateTotal();
+
+    document.getElementById('qtySection').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function updateTotal() {
+    if (!selectedProduct) return;
+    const qty = parseInt(document.getElementById('quantityDisplay').value) || 0;
+    const total = selectedProduct.price * qty;
+    document.getElementById('quantityHidden').value = qty;
+    document.getElementById('totalPreview').textContent = 'Rp ' + total.toLocaleString('id-ID');
+    document.getElementById('totalDetail').textContent = qty + ' item x Rp ' + selectedProduct.price.toLocaleString('id-ID');
+}
+
+function changeQty(delta) {
+    const input = document.getElementById('quantityDisplay');
+    const current = parseInt(input.value) || 0;
+    const max = selectedProduct ? selectedProduct.stock : 999;
+    const newVal = Math.min(max, Math.max(1, current + delta));
+    input.value = newVal;
+    updateTotal();
+}
+
+function showReceipt() {
+    if (!selectedProduct) return;
+    const qty = parseInt(document.getElementById('quantityDisplay').value) || 0;
+    if (qty < 1) return;
+
+    const total = selectedProduct.price * qty;
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('id-ID', {
+        weekday: 'long', year: 'numeric',
+        month: 'long', day: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+    });
+
+    document.getElementById('receiptDate').textContent = dateStr;
+    document.getElementById('receiptProduct').textContent = selectedProduct.name;
+    document.getElementById('receiptPrice').textContent = 'Rp ' + selectedProduct.price.toLocaleString('id-ID');
+    document.getElementById('receiptQty').textContent = qty + ' item';
+    document.getElementById('receiptTotal').textContent = 'Rp ' + total.toLocaleString('id-ID');
+
+    document.getElementById('receiptModal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeReceipt(event) {
+    if (event.target === document.getElementById('receiptModal')) closeModal();
+}
+
+function closeModal() {
+    document.getElementById('receiptModal').classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function processTransaction() {
+    document.getElementById('transactionForm').submit();
+}
+</script>
+{% endblock %}

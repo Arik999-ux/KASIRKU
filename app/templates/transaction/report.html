@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% block title %}Laporan Harian{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h4 class="page-title">Laporan Harian</h4>
+        <p class="page-subtitle">Ringkasan transaksi berdasarkan tanggal.</p>
+    </div>
+</div>
+
+<div class="content-card mb-4">
+    <form method="GET" action="{{ url_for('transaction.report') }}" class="d-flex gap-3 align-items-end p-1">
+        <div>
+            <label class="form-label fw-500 mb-1">Pilih Tanggal</label>
+            <input type="date" name="date" class="form-control"
+                   value="{{ selected_date.strftime('%Y-%m-%d') }}">
+        </div>
+        <button type="submit" class="btn btn-primary-custom">
+            <i class="bi bi-search me-1"></i> Tampilkan
+        </button>
+    </form>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-12 col-md-4">
+        <div class="stat-card stat-green">
+            <div class="stat-icon"><i class="bi bi-cash-stack"></i></div>
+            <div class="stat-info">
+                <p class="stat-label">Total Pendapatan</p>
+                <h3 class="stat-value">Rp {{ "{:,.0f}".format(total_revenue) }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-4">
+        <div class="stat-card stat-blue">
+            <div class="stat-icon"><i class="bi bi-receipt"></i></div>
+            <div class="stat-info">
+                <p class="stat-label">Jumlah Transaksi</p>
+                <h3 class="stat-value">{{ transactions|length }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-4">
+        <div class="stat-card stat-orange">
+            <div class="stat-icon"><i class="bi bi-calendar-date"></i></div>
+            <div class="stat-info">
+                <p class="stat-label">Tanggal</p>
+                <h3 class="stat-value">{{ selected_date.strftime('%d/%m/%Y') }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="content-card">
+    <div class="table-responsive">
+        <table class="table table-hover custom-table">
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>Produk</th>
+                    <th>Kasir</th>
+                    <th>Qty</th>
+                    <th>Total</th>
+                    <th>Waktu</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if transactions %}
+                    {% for t in transactions %}
+                    <tr>
+                        <td class="text-muted">{{ loop.index }}</td>
+                        <td class="fw-500">{{ t.product.name }}</td>
+                        <td>{{ t.cashier.username }}</td>
+                        <td><span class="badge bg-light text-dark">{{ t.quantity }}</span></td>
+                        <td class="fw-600 text-success">Rp {{ "{:,.0f}".format(t.total_price) }}</td>
+                        <td class="text-muted small">{{ t.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="table-success fw-600">
+                        <td colspan="4" class="text-end">Total Pendapatan:</td>
+                        <td>Rp {{ "{:,.0f}".format(total_revenue) }}</td>
+                        <td></td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            <i class="bi bi-calendar-x fs-4 d-block mb-2"></i>
+                            Tidak ada transaksi pada tanggal ini
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
