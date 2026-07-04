@@ -20,13 +20,11 @@ def create_app():
     from app.routes.dashboard import dashboard_bp
     from app.routes.product import product_bp
     from app.routes.category import category_bp
-    from app.routes.transaction import transaction_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(product_bp)
     app.register_blueprint(category_bp)
-    app.register_blueprint(transaction_bp)
 
     with app.app_context():
         db.create_all()
